@@ -51,6 +51,8 @@
 #define AIRSPEED_BASE_DEVICE_PATH "/dev/airspeed"
 #define AIRSPEED0_DEVICE_PATH	"/dev/airspeed0"
 
+#include <uORB/topics/airspeed.h>
+
 /*
  * ioctl() definitions
  *
