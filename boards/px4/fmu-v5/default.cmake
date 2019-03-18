@@ -124,5 +124,7 @@ px4_add_board(
 		rover_steering_control # Rover example app
 		segway
 		uuv_example_app
+		servo_deflection
+		airspeed
 
 	)
