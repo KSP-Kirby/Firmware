@@ -82,6 +82,7 @@ UavcanNode::UavcanNode(uavcan::ICanDriver &can_driver, uavcan::ISystemClock &sys
 	_node_mutex(),
 	_esc_controller(_node),
 	_hardpoint_controller(_node),
+        _servo_controller(_node),
 	_time_sync_master(_node),
 	_time_sync_slave(_node),
 	_node_status_monitor(_node),
@@ -649,6 +650,8 @@ int UavcanNode::init(uavcan::NodeID node_id)
 		return ret;
 	}
 
+        ret = _servo_controller.init();
+
 	// Sensor bridges
 	IUavcanSensorBridge::make_all(_node, _sensor_bridges);
 	auto br = _sensor_bridges.getHead();
@@ -906,7 +909,6 @@ int UavcanNode::run()
 					_outputs.output[_test_motor.motor_number] = _test_motor.value * 2.0f - 1.0f;
 					_outputs.noutputs = _test_motor.motor_number + 1;
 				}
-
 				new_output = true;
 
 			} else if (controls_updated && (_mixers != nullptr)) {
@@ -919,7 +921,7 @@ int UavcanNode::run()
 
 				// Do mixing
 				_outputs.noutputs = _mixers->mix(&_outputs.output[0], num_outputs_max);
-
+                                PX4_INFO("(controls_updated && (_mixers != nullptr");
 				new_output = true;
 			}
 		}
@@ -949,8 +951,17 @@ int UavcanNode::run()
 			}
 
 			// Output to the bus
+                        // TODO figure out how to disable esc controller commands correctly
 			_esc_controller.update_outputs(_outputs.output, _outputs.noutputs);
 			_outputs.timestamp = hrt_absolute_time();
+
+                        if (_actuator_direct.nvalues >= 8)
+                        {
+                            for (uint8_t i = 0; i < 4; i++)
+                            {
+                                _servo_controller.update_outputs(i,_actuator_direct.values[i+4]);
+                            }
+                        }
 
 			// use first valid timestamp_sample for latency tracking
 			for (int i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {
@@ -963,7 +974,6 @@ int UavcanNode::run()
 				}
 			}
 		}
-
 
 		// Check motor test state
 		bool updated = false;
