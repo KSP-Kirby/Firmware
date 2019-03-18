@@ -86,12 +86,14 @@ px4_add_module(
 		# Actuators
 		actuators/esc.cpp
 		actuators/hardpoint.cpp
+		actuators/servo.cpp
 
 		# Sensors
 		sensors/sensor_bridge.cpp
 		sensors/gnss.cpp
 		sensors/mag.cpp
 		sensors/baro.cpp
+		sensors/air_data.cpp
 
 	DEPENDS
 		mixer
